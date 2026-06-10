@@ -1,0 +1,1418 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>云端数据管理平台</title>
+    <style>
+      /* ========== 全局样式 ========== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* ========== 登录界面 ========== */
+      .login-screen {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
+
+      .login-card {
+        background: white;
+        border-radius: 32px;
+        padding: 40px;
+        width: 420px;
+        max-width: 90%;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+
+      .login-brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .login-brand .logo {
+        width: 52px;
+        height: 52px;
+        background: #e2e8f0;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+      }
+
+      .login-brand h1 {
+        font-size: 22px;
+        font-weight: 600;
+      }
+
+      .login-brand p {
+        font-size: 14px;
+        color: #475569;
+        margin-top: 4px;
+      }
+
+      .login-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .login-field span {
+        font-size: 14px;
+        font-weight: 500;
+        color: #334155;
+      }
+
+      .login-field input {
+        padding: 12px 16px;
+        border: 1px solid #cbd5e1;
+        border-radius: 14px;
+        font-size: 15px;
+        transition: all 0.2s;
+      }
+
+      .login-field input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      .login-error {
+        color: #dc2626;
+        font-size: 13px;
+        margin: -8px 0 16px 0;
+      }
+
+      .login-submit {
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      .login-hint {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+
+      /* ========== 应用外壳 ========== */
+      .app-shell {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .app-header {
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0 24px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand .logo {
+        width: 38px;
+        height: 38px;
+        background: #e2e8f0;
+        border-radius: 10px;
+      }
+
+      .brand h1 {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .search-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f8fafc;
+        padding: 6px 14px;
+        border-radius: 40px;
+        border: 1px solid #e2e8f0;
+      }
+
+      .search-control span {
+        font-size: 14px;
+        color: #64748b;
+      }
+
+      .search-control input {
+        border: none;
+        background: transparent;
+        padding: 6px 0;
+        width: 200px;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .ghost-button {
+        background: transparent;
+        border: none;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #3b82f6;
+        cursor: pointer;
+        border-radius: 30px;
+        transition: background 0.2s;
+      }
+
+      .ghost-button:hover {
+        background: #eff6ff;
+      }
+
+      /* ========== 主布局 ========== */
+      .main-layout {
+        display: flex;
+        flex: 1;
+      }
+
+      .category-nav {
+        width: 200px;
+        background: white;
+        border-right: 1px solid #e2e8f0;
+        padding: 24px 16px;
+      }
+
+      .category-nav h2 {
+        font-size: 14px;
+        font-weight: 500;
+        color: #64748b;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+        padding-left: 12px;
+      }
+
+      .category-nav #categoryList {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .category-button {
+        width: 100%;
+        text-align: left;
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 500;
+        color: #334155;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .category-button:hover {
+        background: #f1f5f9;
+      }
+
+      .category-button.active {
+        background: #eff6ff;
+        color: #2563eb;
+      }
+
+      /* ========== 内容面板 ========== */
+      .content-panel {
+        flex: 1;
+        padding: 24px 28px;
+        background: #f8fafc;
+      }
+
+      .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+      }
+
+      .eyebrow {
+        font-size: 13px;
+        font-weight: 500;
+        color: #64748b;
+        letter-spacing: 0.3px;
+      }
+
+      .content-header h2 {
+        font-size: 26px;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+
+      .content-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .mini-button {
+        background: transparent;
+        border: 1px solid #cbd5e1;
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .secondary-button {
+        background: white;
+        border: 1px solid #cbd5e1;
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .secondary-button:hover {
+        background: #f1f5f9;
+      }
+
+      .primary-button {
+        background: #3b82f6;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: 500;
+        color: white;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .primary-button:hover {
+        background: #2563eb;
+      }
+
+      /* ========== 筛选栏 ========== */
+      .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        background: white;
+        padding: 16px 20px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      .filter-bar label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #475569;
+      }
+
+      .filter-bar select {
+        padding: 6px 28px 6px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 30px;
+        background: white;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      /* ========== 记录列表 ========== */
+      .record-list-shell {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      .record-list-header {
+        display: grid;
+        grid-template-columns: 100px 70px 100px 100px 100px 100px 80px;
+        background: #f8fafc;
+        padding: 14px 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .record-list {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .record-card {
+        display: grid;
+        grid-template-columns: 100px 70px 100px 100px 100px 100px 80px;
+        padding: 14px 20px;
+        align-items: center;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 14px;
+      }
+
+      .record-field {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .record-field span {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-bottom: 2px;
+      }
+
+      .link-button {
+        background: none;
+        border: none;
+        color: #3b82f6;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        width: fit-content;
+        padding: 4px 8px;
+        border-radius: 20px;
+      }
+
+      .link-button:hover {
+        background: #eff6ff;
+      }
+
+      /* ========== 详情页 ========== */
+      .detail-view {
+        background: white;
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      .detail-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+      }
+
+      .detail-actions {
+        display: flex;
+        gap: 12px;
+      }
+
+      .detail-meta-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        padding: 16px 0;
+        border-top: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #475569;
+      }
+
+      .detail-meta-line span {
+        background: #f1f5f9;
+        padding: 4px 12px;
+        border-radius: 20px;
+      }
+
+      .data-strip-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .data-strip-head {
+        display: grid;
+        grid-template-columns: 40px 120px 150px 120px 100px 140px 100px 100px;
+        background: #f8fafc;
+        padding: 12px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        border-radius: 16px;
+      }
+
+      .data-strip {
+        display: grid;
+        grid-template-columns: 40px 120px 150px 120px 100px 140px 100px 100px;
+        padding: 12px 16px;
+        align-items: center;
+        font-size: 13px;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .data-row-detail {
+        grid-column: 1 / -1;
+        background: #f8fafc;
+        padding: 16px 20px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+        border-radius: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .profile-info-strip {
+        display: flex;
+        gap: 40px;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 20px;
+        margin-bottom: 20px;
+      }
+
+      .image-preview-button {
+        background: #f1f5f9;
+        border: none;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      .image-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+      }
+
+      .image-modal {
+        background: white;
+        border-radius: 32px;
+        width: 560px;
+        max-width: 90%;
+        padding: 24px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748b;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: #1e293b;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-size: 14px;
+        z-index: 300;
+        transition: transform 0.2s;
+        pointer-events: none;
+      }
+
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .status {
+        padding: 2px 10px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .status.success {
+        background: #dcfce7;
+        color: #15803d;
+      }
+
+      .status.warning {
+        background: #fef9c3;
+        color: #854d0e;
+      }
+
+      /* 其他分类特殊样式 */
+      .neuro-record-list-header {
+        grid-template-columns: 100px 70px 100px 100px 100px 100px 100px 100px 80px;
+      }
+
+      .neuro-record-card {
+        grid-template-columns: 100px 70px 100px 100px 100px 100px 100px 100px 80px;
+      }
+
+      .device-record-list-header,
+      .personal-record-list-header {
+        grid-template-columns: 100px 70px 100px 150px 80px;
+      }
+
+      .device-record-card,
+      .personal-record-card {
+        grid-template-columns: 100px 70px 100px 150px 80px;
+      }
+
+      .algorithm-record-list-header {
+        grid-template-columns: 100px 70px 100px 100px 150px 80px 80px;
+      }
+
+      .algorithm-record-card {
+        grid-template-columns: 100px 70px 100px 100px 150px 80px 80px;
+      }
+
+      .training-record-list-header {
+        grid-template-columns: 100px 70px 100px 100px 100px 100px 100px 100px 80px;
+      }
+
+      .training-record-card {
+        grid-template-columns: 100px 70px 100px 100px 100px 100px 100px 100px 80px;
+      }
+
+      .filter-bar-three {
+        grid-template-columns: repeat(3, auto);
+      }
+
+      .filter-bar-five {
+        grid-template-columns: repeat(5, auto);
+      }
+
+      .export-list-header {
+        display: grid;
+        grid-template-columns: 160px 140px 280px 120px 80px;
+        background: #f8fafc;
+        padding: 14px 20px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .export-row {
+        display: grid;
+        grid-template-columns: 160px 140px 280px 120px 80px;
+        padding: 14px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="login-screen" id="loginScreen">
+      <div class="login-card">
+        <div class="login-brand">
+          <div class="logo">📊</div>
+          <div>
+            <h1>云端数据管理平台</h1>
+            <p>请输入账号和密码进入数据平台</p>
+          </div>
+        </div>
+        <label class="login-field">
+          <span>用户账号</span>
+          <input id="accountInput" type="text" placeholder="请输入账号" />
+        </label>
+        <label class="login-field">
+          <span>密码</span>
+          <input id="passwordInput" type="password" placeholder="请输入密码" />
+        </label>
+        <p class="login-error hidden" id="loginError">账号或密码错误</p>
+        <button class="primary-button login-submit" id="loginSubmitButton">登入</button>
+        <small class="login-hint">Demo 账号：admin / 密码：123456</small>
+      </div>
+    </section>
+
+    <div class="app-shell hidden" id="appShell">
+      <header class="app-header">
+        <div class="brand">
+          <div class="logo">📊</div>
+          <h1>云端数据管理平台</h1>
+        </div>
+
+        <div class="header-actions">
+          <label class="search-control">
+            <span>搜索</span>
+            <input id="globalSearchInput" type="search" placeholder="测试者编号 / 记录类型" />
+          </label>
+          <button class="ghost-button" id="exportHistoryButton">导出记录</button>
+        </div>
+      </header>
+
+      <main class="main-layout">
+        <aside class="category-nav">
+          <h2>大分类</h2>
+          <div id="categoryList"></div>
+        </aside>
+
+        <section class="content-panel">
+          <div class="content-header">
+            <div>
+              <p class="eyebrow">记录列表</p>
+              <h2 id="contentTitle">神经生理</h2>
+            </div>
+            <div class="content-actions">
+              <button class="mini-button hidden" id="backButton">返回列表</button>
+              <button class="secondary-button" id="refreshButton">刷新</button>
+            </div>
+          </div>
+
+          <div id="contentBody"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast">操作完成</div>
+
+    <script>
+      // ========== 数据定义 ==========
+      const categories = [
+        { key: "neuroPhysiology", label: "神经生理", hint: "信号 / 图像 / 质量" },
+        { key: "algorithmModel", label: "算法模型", hint: "模型 / 版本 / 指标" },
+        { key: "userBehavior", label: "用户行为", hint: "任务 / 点击 / 日志" },
+        { key: "trainingConfig", label: "训练配置", hint: "范式 / 参数 / 配置" },
+        { key: "personalInfo", label: "患者信息", hint: "资料 / 医院 / 访视" },
+        { key: "deviceManagement", label: "设备异常", hint: "设备 / 状态 / 维护" }
+      ];
+
+      function makeRecord(subjectId, hospital, postOpTime, availableCount, status, recordType, timeRange, dataType) {
+        const profile = {
+          "0001": { ageGroup: "18-35岁", gender: "男", implantLocation: "左侧运动皮层" },
+          "0111": { ageGroup: "36-55岁", gender: "女", implantLocation: "右侧运动皮层" },
+          "0123": { ageGroup: "56岁以上", gender: "男", implantLocation: "双侧运动皮层" }
+        }[subjectId] || { ageGroup: "未知", gender: "未知", implantLocation: "未知" };
+
+        return {
+          subjectId,
+          hospital,
+          postOpTime,
+          ageGroup: profile.ageGroup,
+          gender: profile.gender,
+          implantLocation: profile.implantLocation,
+          recordDate: timeRange.slice(0, 10),
+          dateRange: formatDateRange(timeRange.slice(0, 10)),
+          availableCount,
+          status,
+          recordType,
+          timeRange,
+          dataType,
+          dataRows: []
+        };
+      }
+
+      function formatDateRange(startDate) {
+        const date = new Date(`${startDate}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return startDate;
+        const endDate = new Date(date);
+        endDate.setDate(endDate.getDate() + 2);
+        return `${startDate} 至 ${endDate.toISOString().slice(0, 10)}`;
+      }
+
+      const records = {
+        neuroPhysiology: [
+          makeRecord("0001", "医院 A", "术后1个月", "12 条", "已完成", "神经生理采集", "2026-05-10 19:30 - 20:10", "Raw Data"),
+          makeRecord("0111", "医院 B", "术后2个月", "8 条", "已完成", "神经信号质量", "2026-05-10 20:15 - 20:42", "RMS"),
+          makeRecord("0123", "医院 A", "术后3个月", "5 条", "待复核", "频谱分析", "2026-05-09 18:20 - 18:55", "频谱图")
+        ],
+        algorithmModel: [
+          makeRecord("0001", "医院 A", "术后1个月", "4 个模型", "可用", "Decoder 模型", "2026-05-10 21:00 - 21:30", "模型评估"),
+          makeRecord("0111", "医院 B", "术后2个月", "3 个模型", "可用", "Classifier 模型", "2026-05-09 18:00 - 18:35", "训练结果"),
+          makeRecord("0123", "医院 A", "术后3个月", "2 个模型", "待确认", "Calibration 模型", "2026-05-08 16:00 - 16:25", "校准参数")
+        ],
+        userBehavior: [
+          makeRecord("0001", "医院 A", "术后1个月", "8 个 Session", "已完成", "Combo Session", "2026-05-10 19:56 - 20:08", "行为日志"),
+          makeRecord("0111", "医院 B", "术后2个月", "6 个 Session", "已完成", "Keyboard Session", "2026-05-10 20:18 - 20:30", "点击记录"),
+          makeRecord("0123", "医院 A", "术后3个月", "4 个 Session", "已完成", "Mechanical Arm", "2026-05-10 20:44 - 20:58", "任务指标")
+        ],
+        trainingConfig: [
+          makeRecord("0001", "医院 A", "术后1个月", "3 套配置", "启用", "Combo 训练范式", "2026-05-10 09:00 - 09:10", "训练配置"),
+          makeRecord("0111", "医院 B", "术后2个月", "2 套配置", "启用", "轮椅控制映射", "2026-05-10 09:30 - 09:42", "设备映射"),
+          makeRecord("0123", "医院 A", "术后3个月", "2 套配置", "停用", "阈值参数", "2026-05-09 10:00 - 10:12", "参数版本")
+        ],
+        personalInfo: [
+          makeRecord("0001", "医院 A", "术后1个月", "1 份档案", "有效", "基础资料", "2026-05-10", "个人档案"),
+          makeRecord("0111", "医院 B", "术后2个月", "1 份档案", "有效", "医院信息", "2026-05-09", "机构资料"),
+          makeRecord("0123", "医院 A", "术后3个月", "1 份档案", "进行中", "访视节点", "2026-05-08", "访视信息")
+        ],
+        deviceManagement: [
+          makeRecord("0001", "医院 A", "术后1个月", "5 次记录", "正常", "供电体连接", "2026-05-10 19:00 - 20:30", "设备状态"),
+          makeRecord("0111", "医院 B", "术后2个月", "4 次记录", "正常", "植入体连接", "2026-05-10 19:02 - 20:25", "连接状态"),
+          makeRecord("0123", "医院 A", "术后3个月", "3 次记录", "已记录", "系统连接时长", "2026-05-10 19:00 - 20:12", "使用时长")
+        ]
+      };
+
+      const extraSubjects = [
+        ["0201", "医院 B", "术后4个月", "10 条", "已完成"],
+        ["0208", "医院 C", "术后5个月", "7 条", "待复核"],
+        ["0310", "医院 A", "术后6个月", "14 条", "已完成"],
+        ["0412", "医院 C", "出院访视", "6 条", "进行中"],
+        ["0506", "医院 B", "手术当天", "9 条", "已完成"],
+        ["0618", "医院 A", "术后1个月", "11 条", "待确认"],
+        ["0722", "医院 C", "术后2个月", "4 条", "已记录"],
+        ["0830", "医院 B", "术后3个月", "13 条", "已完成"]
+      ];
+
+      Object.entries(records).forEach(([categoryKey, list]) => {
+        const base = list[0];
+        extraSubjects.forEach(([subjectId, hospital, postOpTime, count, status], index) => {
+          let unit = "条";
+          if (base.availableCount.includes("模型")) unit = "个模型";
+          else if (base.availableCount.includes("Session")) unit = "个 Session";
+          else if (base.availableCount.includes("配置")) unit = "套配置";
+          else if (base.availableCount.includes("档案")) unit = "份档案";
+          else if (base.availableCount.includes("记录")) unit = "次记录";
+          list.push(makeRecord(
+            subjectId,
+            hospital,
+            postOpTime,
+            count.replace("条", unit),
+            status,
+            `${base.recordType}-${index + 1}`,
+            `2026-05-${String(11 + index).padStart(2, "0")} 09:00 - 10:00`,
+            base.dataType
+          ));
+        });
+      });
+
+      const detailDataCatalog = {
+        neuroPhysiology: [
+          ["Raw信号", "采样完整率 98.20%"],
+          ["各式神经数据（bincount/sbp）", "数据包 24 组"]
+        ],
+        algorithmModel: [
+          ["模型数据", "当前版本 v2.1"]
+        ],
+        userBehavior: [
+          ["脑控成功率", "100.00%"],
+          ["脑控流畅度指标", "80.00 bits/min"],
+          ["任务清单准确率", "100.00%"],
+          ["器械可靠性", "238 通道"],
+          ["平均每月器械使用时长", "42.50 h"],
+          ["轮椅移动距离&时长", "120.00 m / 35.00 min"],
+          ["机械臂任务成功个数", "6.00 次"]
+        ],
+        trainingConfig: [
+          ["卡片配置策略", "已启用"],
+          ["映射配置策略", "已启用"],
+          ["训练策略", "v3.2"],
+          ["校准策略", "最近校准 2026-05-10"]
+        ],
+        personalInfo: [
+          ["年龄", "32 岁"],
+          ["性别", "男"],
+          ["手术记录", "已归档"],
+          ["植入定位信息", "已确认"]
+        ],
+        deviceManagement: [
+          ["主板电压（x100）", "330"],
+          ["主板电流", "120 mA"],
+          ["主板温度(NTC3)", "36.8 ℃"],
+          ["SHT45_1温度", "27.1 ℃"],
+          ["SHT45_1湿度", "48.2 %"],
+          ["SHT45_2温度", "27.4 ℃"],
+          ["SHT45_2湿度", "49.0 %"],
+          ["WF280A气压", "101.2 kPa"],
+          ["WF280A温度", "26.9 ℃"]
+        ]
+      };
+
+      // ========== 状态管理 ==========
+      const state = {
+        activeCategory: "neuroPhysiology",
+        mode: "list",
+        selectedRecord: null,
+        search: "",
+        detailDataType: "all",
+        detailDateRange: { start: "", end: "" },
+        detailPostOpMonth: "1",
+        selectedDetailRows: [],
+        expandedDataRow: "",
+        filters: {
+          subjectId: "all",
+          hospital: "all",
+          ageGroup: "all",
+          gender: "all",
+          postOpTime: "all",
+          implantLocation: "all"
+        }
+      };
+
+      // ========== DOM 元素 ==========
+      const el = {
+        loginScreen: document.getElementById("loginScreen"),
+        appShell: document.getElementById("appShell"),
+        accountInput: document.getElementById("accountInput"),
+        passwordInput: document.getElementById("passwordInput"),
+        loginError: document.getElementById("loginError"),
+        loginSubmitButton: document.getElementById("loginSubmitButton"),
+        searchInput: document.getElementById("globalSearchInput"),
+        exportHistoryButton: document.getElementById("exportHistoryButton"),
+        categoryList: document.getElementById("categoryList"),
+        contentTitle: document.getElementById("contentTitle"),
+        contentBody: document.getElementById("contentBody"),
+        backButton: document.getElementById("backButton"),
+        refreshButton: document.getElementById("refreshButton"),
+        toast: document.getElementById("toast")
+      };
+
+      // ========== 辅助函数 ==========
+      function unique(values) {
+        return [...new Set(values.filter(Boolean))];
+      }
+
+      function shiftDate(dateText, offset) {
+        const date = new Date(`${dateText}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return dateText;
+        date.setDate(date.getDate() + offset);
+        return date.toISOString().slice(0, 10);
+      }
+
+      function shiftMonth(dateText, offset) {
+        const date = new Date(`${dateText}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return dateText.slice(0, 7);
+        date.setMonth(date.getMonth() + offset);
+        return date.toISOString().slice(0, 7);
+      }
+
+      function showToast(text) {
+        el.toast.textContent = text;
+        el.toast.classList.add("show");
+        setTimeout(() => el.toast.classList.remove("show"), 1600);
+      }
+
+      function activeCategory() {
+        return categories.find((item) => item.key === state.activeCategory);
+      }
+
+      function filteredRecords() {
+        const keyword = state.search.trim().toLowerCase();
+        const source = records[state.activeCategory] || [];
+        return source.filter((record) => {
+          const keywordMatched = !keyword || [
+            record.subjectId,
+            record.hospital,
+            record.ageGroup,
+            record.gender,
+            record.postOpTime,
+            record.implantLocation,
+            record.availableCount,
+            record.status,
+            record.recordType
+          ].join(" ").toLowerCase().includes(keyword);
+
+          const subjectMatched = state.filters.subjectId === "all" || record.subjectId === state.filters.subjectId;
+          const hospitalMatched = state.filters.hospital === "all" || record.hospital === state.filters.hospital;
+          const ageMatched = state.filters.ageGroup === "all" || record.ageGroup === state.filters.ageGroup;
+          const genderMatched = state.filters.gender === "all" || record.gender === state.filters.gender;
+          const implantMatched = ["algorithmModel", "deviceManagement"].includes(state.activeCategory) || state.filters.implantLocation === "all" || record.implantLocation === state.filters.implantLocation;
+          const postOpMatched = !["algorithmModel", "trainingConfig"].includes(state.activeCategory) || state.filters.postOpTime === "all" || record.postOpTime === state.filters.postOpTime;
+          return keywordMatched && subjectMatched && hospitalMatched && ageMatched && genderMatched && implantMatched && postOpMatched;
+        });
+      }
+
+      function collectFilterOptions(list) {
+        return {
+          subjectIds: unique(list.map((record) => record.subjectId)),
+          hospitals: unique(list.map((record) => record.hospital)),
+          ageGroups: unique(list.map((record) => record.ageGroup)),
+          genders: unique(list.map((record) => record.gender)),
+          implantLocations: unique(list.map((record) => record.implantLocation))
+        };
+      }
+
+      function resetFilters() {
+        state.filters = {
+          subjectId: "all",
+          hospital: "all",
+          ageGroup: "all",
+          gender: "all",
+          postOpTime: "all",
+          implantLocation: "all"
+        };
+      }
+
+      function resetDetailDateRange() {
+        state.detailDateRange = { start: "", end: "" };
+      }
+
+      function postOpStageOptions() {
+        return ["all", "术后1个月", "术后2个月", "术后3个月", "术后4个月", "术后5个月", "术后6个月"];
+      }
+
+      // ========== 渲染函数 ==========
+      function render() {
+        renderCategoryNav();
+        renderContent();
+      }
+
+      function renderCategoryNav() {
+        el.categoryList.innerHTML = categories.map((item) => `
+          <button class="category-button ${item.key === state.activeCategory ? "active" : ""}" data-category="${item.key}">
+            <span>${item.label}</span>
+          </button>
+        `).join("");
+      }
+
+      function renderContent() {
+        const category = activeCategory();
+        el.contentTitle.textContent = state.mode === "exports" ? "导出记录" : category.label;
+        el.backButton.classList.toggle("hidden", !["detail", "exports"].includes(state.mode));
+
+        if (state.mode === "exports") {
+          renderFilterBar(false);
+          renderExportHistory();
+          return;
+        }
+
+        if (state.mode === "detail") {
+          renderFilterBar(false);
+          renderDetail();
+          return;
+        }
+
+        renderFilterBar(true);
+        renderRecordList();
+      }
+
+      function renderFilterBar(visible) {
+        let filterBar = document.getElementById("filterBar");
+        if (!visible) {
+          if (filterBar) filterBar.remove();
+          return;
+        }
+
+        const options = collectFilterOptions(records[state.activeCategory] || []);
+        const showImplantFilter = !["algorithmModel", "deviceManagement"].includes(state.activeCategory);
+        const showAlgorithmPostOpFilter = state.activeCategory === "algorithmModel";
+        const showPostOpStageFilter = state.activeCategory === "trainingConfig";
+        
+        const selectHtml = (name, values, current, allLabel) => `
+          <select data-filter="${name}">
+            ${values.map((value) => `<option value="${value}" ${value === current ? "selected" : ""}>${value === "all" ? allLabel : value}</option>`).join("")}
+          </select>
+        `;
+
+        const html = `
+          <div class="filter-bar" id="filterBar">
+            <label><span>年龄段</span>${selectHtml("ageGroup", ["all", ...options.ageGroups], state.filters.ageGroup, "全部年龄")}</label>
+            <label><span>性别</span>${selectHtml("gender", ["all", ...options.genders], state.filters.gender, "全部性别")}</label>
+            <label><span>医院</span>${selectHtml("hospital", ["all", ...options.hospitals], state.filters.hospital, "全部医院")}</label>
+            ${showAlgorithmPostOpFilter ? `<label><span>术后时间</span>${selectHtml("postOpTime", postOpStageOptions(), state.filters.postOpTime, "全部时间")}</label>` : ""}
+            ${showPostOpStageFilter ? `<label><span>术后阶段</span>${selectHtml("postOpTime", postOpStageOptions(), state.filters.postOpTime, "全部阶段")}</label>` : ""}
+            ${showImplantFilter ? `<label><span>植入位置</span>${selectHtml("implantLocation", ["all", ...options.implantLocations], state.filters.implantLocation, "全部位置")}</label>` : ""}
+          </div>
+        `;
+
+        if (filterBar) {
+          filterBar.outerHTML = html;
+          return;
+        }
+        document.querySelector(".content-header").insertAdjacentHTML("afterend", html);
+      }
+
+      function renderRecordList() {
+        const list = filteredRecords();
+        const isDeviceList = state.activeCategory === "deviceManagement";
+        const isPersonalList = state.activeCategory === "personalInfo";
+        const isAlgorithmList = state.activeCategory === "algorithmModel";
+        
+        if (!list.length) {
+          el.contentBody.innerHTML = `<div class="empty-state"><div><strong>暂无匹配记录</strong><p>请调整搜索关键词或切换左侧分类。</p></div></div>`;
+          return;
+        }
+
+        if (isDeviceList) {
+          el.contentBody.innerHTML = `
+            <div class="record-list-shell">
+              <div class="record-list-header device-record-list-header">
+                <span>编号</span><span>性别</span><span>医院</span><span>异常情况</span><span>操作</span>
+              </div>
+              <div class="record-list">
+                ${list.map((record, index) => `
+                  <article class="record-card device-record-card">
+                    <div class="record-field"><span>编号</span><strong>${record.subjectId}</strong></div>
+                    <div class="record-field"><span>性别</span><strong>${record.gender}</strong></div>
+                    <div class="record-field"><span>医院</span><strong>${record.hospital}</strong></div>
+                    <div class="record-field"><span>异常情况</span><strong>${["1次","2次","0次","1次","3次","2次","1次","0次"][index % 8]}</strong></div>
+                    <button class="link-button" data-contact-user="${record.subjectId}">联系用户</button>
+                  </article>
+                `).join("")}
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        if (isPersonalList) {
+          el.contentBody.innerHTML = `
+            <div class="record-list-shell">
+              <div class="record-list-header personal-record-list-header">
+                <span>编号</span><span>性别</span><span>医院</span><span>术后时间</span><span>植入位置</span><span>操作</span>
+              </div>
+              <div class="record-list">
+                ${list.map((record, index) => `
+                  <article class="record-card personal-record-card">
+                    <div class="record-field"><span>编号</span><strong>${record.subjectId}</strong></div>
+                    <div class="record-field"><span>性别</span><strong>${record.gender}</strong></div>
+                    <div class="record-field"><span>医院</span><strong>${record.hospital}</strong></div>
+                    <div class="record-field"><span>术后时间</span><strong>${record.postOpTime}</strong></div>
+                    <div class="record-field"><span>植入位置</span><strong>${record.implantLocation !== "未知" ? record.implantLocation : ["左侧运动皮层","右侧运动皮层","双侧运动皮层"][index % 3]}</strong></div>
+                    <button class="link-button" data-detail="${index}">详情</button>
+                  </article>
+                `).join("")}
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        if (isAlgorithmList) {
+          const models = ["Decoder v2.1", "Adaptive BCI v1.8", "IntentNet v3.0", "CursorControl v2.4", "ArmAssist v1.6", "WheelNav v2.2"];
+          const r2Values = ["96.8%", "94.2%", "97.5%", "92.9%", "95.6%", "98.1%"];
+          el.contentBody.innerHTML = `
+            <div class="record-list-shell">
+              <div class="record-list-header algorithm-record-list-header">
+                <span>编号</span><span>性别</span><span>医院</span><span>术后时间</span><span>当前使用模型</span><span>R²</span><span>操作</span>
+              </div>
+              <div class="record-list">
+                ${list.map((record, index) => `
+                  <article class="record-card algorithm-record-card">
+                    <div class="record-field"><span>编号</span><strong>${record.subjectId}</strong></div>
+                    <div class="record-field"><span>性别</span><strong>${record.gender}</strong></div>
+                    <div class="record-field"><span>医院</span><strong>${record.hospital}</strong></div>
+                    <div class="record-field"><span>术后时间</span><strong>${record.postOpTime}</strong></div>
+                    <div class="record-field"><span>当前使用模型</span><strong>${models[index % models.length]}</strong></div>
+                    <div class="record-field"><span>R²</span><strong>${r2Values[index % r2Values.length]}</strong></div>
+                    <button class="link-button" data-detail="${index}">详情</button>
+                  </article>
+                `).join("")}
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        if (state.activeCategory === "trainingConfig") {
+          const mappings = ["手腕", "食指", "拇指", "肘部", "肩部", "掌心"];
+          const cards = ["基础卡片", "精细卡片", "组合卡片", "校准卡片", "自由卡片", "训练卡片"];
+          const strategies = ["标准训练", "渐进训练", "快速适配", "稳定训练", "强化训练", "低负荷训练"];
+          const calibrations = ["自动校准", "手动校准", "日常校准", "快速校准", "精细校准", "复测校准"];
+          el.contentBody.innerHTML = `
+            <div class="record-list-shell">
+              <div class="record-list-header training-record-list-header">
+                <span>编号</span><span>性别</span><span>医院</span><span>术后时间</span><span>映射配置</span><span>卡片配置</span><span>训练策略</span><span>校准策略</span><span>操作</span>
+              </div>
+              <div class="record-list">
+                ${list.map((record, index) => `
+                  <article class="record-card training-record-card">
+                    <div class="record-field"><span>编号</span><strong>${record.subjectId}</strong></div>
+                    <div class="record-field"><span>性别</span><strong>${record.gender}</strong></div>
+                    <div class="record-field"><span>医院</span><strong>${record.hospital}</strong></div>
+                    <div class="record-field"><span>术后时间</span><strong>${record.postOpTime}</strong></div>
+                    <div class="record-field"><span>映射配置</span><strong>${mappings[index % mappings.length]}</strong></div>
+                    <div class="record-field"><span>卡片配置</span><strong>${cards[index % cards.length]}</strong></div>
+                    <div class="record-field"><span>训练策略</span><strong>${strategies[index % strategies.length]}</strong></div>
+                    <div class="record-field"><span>校准策略</span><strong>${calibrations[index % calibrations.length]}</strong></div>
+                    <button class="link-button" data-detail="${index}">详情</button>
+                  </article>
+                `).join("")}
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        if (state.activeCategory === "neuroPhysiology") {
+          const imageTypes = ["FR", "SNR", "RMS", "Shank Quality", "Channel Quality"];
+          el.contentBody.innerHTML = `
+            <div class="record-list-shell">
+              <div class="record-list-header neuro-record-list-header">
+                <span>编号</span><span>性别</span><span>医院</span><span>术后时间</span>
+                ${imageTypes.map((type) => `<span>${type}</span>`).join("")}
+                <span>操作</span>
+              </div>
+              <div class="record-list">
+                ${list.map((record, index) => `
+                  <article class="record-card neuro-record-card">
+                    <div class="record-field"><span>编号</span><strong>${record.subjectId}</strong></div>
+                    <div class="record-field"><span>性别</span><strong>${record.gender}</strong></div>
+                    <div class="record-field"><span>医院</span><strong>${record.hospital}</strong></div>
+                    <div class="record-field"><span>术后时间</span><strong>${record.postOpTime}</strong></div>
+                    ${imageTypes.map((type) => `<button class="image-preview-button" data-image-preview="${index}" data-image-type="${type}">查看</button>`).join("")}
+                    <button class="link-button" data-detail="${index}">详情</button>
+                  </article>
+                `).join("")}
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        // 默认列表
+        el.contentBody.innerHTML = `
+          <div class="record-list-shell">
+            <div class="record-list-header">
+              <span>编号</span><span>性别</span><span>医院</span><span>术后时间</span><span>指标1</span><span>指标2</span><span>操作</span>
+            </div>
+            <div class="record-list">
+              ${list.map((record, index) => `
+                <article class="record-card">
+                  <div class="record-field"><span>编号</span><strong>${record.subjectId}</strong></div>
+                  <div class="record-field"><span>性别</span><strong>${record.gender}</strong></div>
+                  <div class="record-field"><span>医院</span><strong>${record.hospital}</strong></div>
+                  <div class="record-field"><span>术后时间</span><strong>${record.postOpTime}</strong></div>
+                  <div class="record-field"><span>指标1</span><strong>${["92.6","88.3","76.9","95.1","81.4","90.7","84.2","97.0"][index % 8]}</strong></div>
+                  <div class="record-field"><span>指标2</span><strong>${["41.8","37.5","52.3","46.9","39.6","55.1","44.2","48.7"][index % 8]}</strong></div>
+                  <button class="link-button" data-detail="${index}">详情</button>
+                </article>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderDetail() {
+        const category = activeCategory();
+        const record = state.selectedRecord;
+        
+        if (state.activeCategory === "personalInfo") {
+          const ageMap = { "18-35岁": "32 岁", "36-55岁": "48 岁", "56岁以上": "61 岁" };
+          el.contentBody.innerHTML = `
+            <div class="detail-view">
+              <div class="detail-toolbar">
+                <div><p class="eyebrow">详情页 / ${category.label}</p><strong>${record.subjectId} · ${record.recordType}</strong></div>
+                <div class="detail-actions">
+                  <button class="secondary-button" data-back-list="true">返回列表</button>
+                  <button class="primary-button" data-export-current="true">导出当前记录</button>
+                </div>
+              </div>
+              <div class="detail-meta-line">
+                <span>编号：${record.subjectId}</span><span>医院：${record.hospital}</span>
+                <span>术后时间：${record.postOpTime}</span><span>记录类型：${record.recordType}</span>
+              </div>
+              <section class="profile-info-strip">
+                <div><span>年龄</span><strong>${ageMap[record.ageGroup] || "未录入"}</strong></div>
+                <div><span>性别</span><strong>${record.gender}</strong></div>
+                <div><span>手术记录</span><strong>已归档</strong></div>
+                <div><span>植入定位信息</span><strong>${record.implantLocation}</strong></div>
+              </section>
+              <section class="surgery-record-panel">
+                <div class="surgery-record-header" style="display:flex;justify-content:space-between;margin-bottom:12px">
+                  <h3>手术记录</h3>
+                  <label class="upload-button" style="background:#f1f5f9;padding:6px 12px;border-radius:20px;cursor:pointer">
+                    上传附件
+                    <input data-surgery-upload="true" type="file" accept=".doc,.docx,.pdf,.png" style="display:none" />
+                  </label>
+                </div>
+                <div class="surgery-record-box" style="padding:20px;border:1px dashed #cbd5e1;border-radius:16px;text-align:center;color:#64748b">
+                  <span>支持 Word / PDF / PNG 格式附件</span>
+                </div>
+              </section>
+            </div>
+          `;
+          return;
+        }
+
+        // 简化详情页渲染（完整版保持核心功能）
+        el.contentBody.innerHTML = `
+          <div class="detail-view">
+            <div class="detail-toolbar">
+              <div><p class="eyebrow">详情页 / ${category.label}</p><strong>${record.subjectId} · ${record.recordType}</strong></div>
+              <div class="detail-actions">
+                <button class="secondary-button" data-back-list="true">返回列表</button>
+                <button class="primary-button" data-export-current="true">导出当前记录</button>
+              </div>
+            </div>
+            <div class="detail-meta-line">
+              <span>编号：${record.subjectId}</span><span>医院：${record.hospital}</span>
+              <span>术后时间：${record.postOpTime}</span><span>记录类型：${record.recordType}</span>
+            </div>
+            <div class="empty-state"><div><strong>详情数据</strong><p>该分类的详细数据展示区域</p></div></div>
+          </div>
+        `;
+      }
+
+      function renderExportHistory() {
+        const exports = [
+          ["2026-05-10 20:12", "神经生理数据", "Neuro_Raw_0001_2026_05_10.zip", "工程师"],
+          ["2026-05-10 21:40", "算法模型数据", "Model_Decoder_0001_v2.1.json", "工程师"],
+          ["2026-05-09 18:30", "个人信息", "Subject_Profile_0111.pdf", "CRC"],
+          ["2026-05-08 17:42", "设备管理", "Device_Status_0123.csv", "工程师"]
+        ];
+        el.contentBody.innerHTML = `
+          <div class="record-list-shell">
+            <div class="export-list-header"><span>导出时间</span><span>导出分类</span><span>文件名</span><span>导出人</span><span>操作</span></div>
+            <div class="record-list">
+              ${exports.map((item, index) => `
+                <article class="export-row">
+                  <strong>${item[0]}</strong><span>${item[1]}</span><span>${item[2]}</span><span>${item[3]}</span>
+                  <button class="link-button" data-download-export="${index}">下载</button>
+                </article>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function switchCategory(key) {
+        state.activeCategory = key;
+        state.mode = "list";
+        state.selectedRecord = null;
+        resetDetailDateRange();
+        state.selectedDetailRows = [];
+        state.expandedDataRow = "";
+        resetFilters();
+        render();
+      }
+
+      function showDetail(index) {
+        state.selectedRecord = filteredRecords()[Number(index)];
+        state.mode = "detail";
+        render();
+      }
+
+      function backToList() {
+        state.mode = "list";
+        state.selectedRecord = null;
+        render();
+      }
+
+      function openImageModal(recordIndex, imageType) {
+        const record = filteredRecords()[Number(recordIndex)];
+        if (!record) return;
+        closeImageModal();
+        document.body.insertAdjacentHTML("beforeend", `
+          <div class="image-modal-backdrop" data-image-modal-close="true">
+            <section class="image-modal">
+              <div class="image-modal-header" style="display:flex;justify-content:space-between;margin-bottom:16px">
+                <div><p class="eyebrow">图像预览</p><h3>${imageType}</h3></div>
+                <button class="modal-close-button" data-image-modal-close="true" style="background:none;border:none;font-size:20px;cursor:pointer">✕</button>
+              </div>
+              <div class="image-modal-meta" style="display:flex;gap:16px;margin-bottom:20px;font-size:13px;color:#64748b">
+                <span>编号：${record.subjectId}</span><span>医院：${record.hospital}</span>
+                <span>术后时间：${record.postOpTime}</span><span>记录类型：${record.recordType}</span>
+              </div>
+              <div class="image-preview-canvas" style="background:#f1f5f9;padding:60px;text-align:center;border-radius:16px">
+                <strong>${imageType}</strong><br/><span>图像预览占位区</span>
+              </div>
+            </section>
+          </div>
+        `);
+      }
+
+      function closeImageModal() {
+        document.querySelector(".image-modal-backdrop")?.remove();
+      }
+
+      function login() {
+        const account = el.accountInput.value.trim();
+        const password = el.passwordInput.value;
+        const valid = account === "admin" && password === "123456";
+        el.loginError.classList.toggle("hidden", valid);
+        if (!valid) return;
+        el.loginScreen.classList.add("hidden");
+        el.appShell.classList.remove("hidden");
+        showToast("登入成功");
+      }
+
+      // ========== 事件绑定 ==========
+      el.categoryList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-category]");
+        if (button) switchCategory(button.dataset.category);
+      });
+
+      el.contentBody.addEventListener("click", (event) => {
+        const imagePreview = event.target.closest("[data-image-preview]");
+        const detailButton = event.target.closest("[data-detail]");
+        const backButton = event.target.closest("[data-back-list]");
+        const exportButton = event.target.closest("[data-export-current]");
+        const downloadExport = event.target.closest("[data-download-export]");
+        const contactUser = event.target.closest("[data-contact-user]");
+        
+        if (imagePreview) {
+          openImageModal(imagePreview.dataset.imagePreview, imagePreview.dataset.imageType);
+          return;
+        }
+        if (detailButton) showDetail(detailButton.dataset.detail);
+        if (contactUser) showToast(`已发起联系用户：${contactUser.dataset.contactUser}`);
+        if (backButton) backToList();
+        if (exportButton) showToast("导出任务已创建");
+        if (downloadExport) showToast("开始下载导出文件");
+      });
+
+      document.body.addEventListener("click", (event) => {
+        if (event.target.closest("[data-image-modal-close]")) closeImageModal();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeImageModal();
+      });
+
+      document.querySelector(".content-panel").addEventListener("change", (event) => {
+        const select = event.target.closest("[data-filter]");
+        const surgeryUpload = event.target.closest("[data-surgery-upload]");
+        if (surgeryUpload) {
+          const fileName = surgeryUpload.files && surgeryUpload.files[0] ? surgeryUpload.files[0].name : "";
+          showToast(fileName ? `已选择附件：${fileName}` : "请选择附件");
+          return;
+        }
+        if (select) {
+          state.filters[select.dataset.filter] = select.value;
+          state.mode = "list";
+          render();
+        }
+      });
+
+      el.backButton.addEventListener("click", backToList);
+      el.refreshButton.addEventListener("click", () => showToast("已刷新记录列表"));
+      el.exportHistoryButton.addEventListener("click", () => {
+        state.mode = "exports";
+        state.selectedRecord = null;
+        render();
+      });
+      el.searchInput.addEventListener("input", (event) => {
+        state.search = event.target.value;
+        state.mode = "list";
+        render();
+      });
+      el.loginSubmitButton.addEventListener("click", login);
+      el.passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+      el.accountInput.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+
+      render();
+    </script>
+  </body>
+</html>
